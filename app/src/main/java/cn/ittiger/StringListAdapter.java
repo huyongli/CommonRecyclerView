@@ -1,8 +1,8 @@
 package cn.ittiger;
 
-import cn.ittiger.recyclerview.HeaderAndFooterAdapter;
-import cn.ittiger.recyclerview.R;
-import cn.ittiger.recyclerview.ViewHolder;
+import cn.ittiger.recyclerview.CommonRecyclerViewAdapter;
+import cn.ittiger.recyclerview.CommonViewHolder;
+import cn.ittiger.recyclerview.demo.R;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * laohu
  */
-public class StringListAdapter extends HeaderAndFooterAdapter<String> {
+public class StringListAdapter extends CommonRecyclerViewAdapter<String> {
 
     private Context mContext;
 
@@ -26,20 +26,20 @@ public class StringListAdapter extends HeaderAndFooterAdapter<String> {
     }
 
     @Override
-    public ViewHolder onCreateItemViewHolder(ViewGroup parent, int viewType) {
+    public CommonViewHolder onCreateItemViewHolder(ViewGroup parent, int viewType) {
 
         View view = LayoutInflater.from(mContext).inflate(R.layout.item_layout, parent, false);
         return new ItemViewHolder(view);
     }
 
     @Override
-    public void onBindItemViewHolder(ViewHolder holder, int position, String item) {
+    public void onBindItemViewHolder(CommonViewHolder holder, int position, String item) {
 
         ItemViewHolder viewHolder = (ItemViewHolder) holder;
         viewHolder.mTextView.setText(item);
     }
 
-    public class ItemViewHolder extends ViewHolder {
+    public class ItemViewHolder extends CommonViewHolder {
 
         public TextView mTextView;
 

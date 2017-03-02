@@ -1,7 +1,7 @@
 package cn.ittiger;
 
 import cn.ittiger.recyclerview.CommonRecyclerView;
-import cn.ittiger.recyclerview.R;
+import cn.ittiger.recyclerview.demo.R;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;

@@ -22,7 +22,7 @@ public class CommonRecyclerView extends RecyclerView {
     private OnScrollListener mOnScrollListener;
     private LoadMoreListener mLoadMoreListener;
     private boolean mIsAutoLoadMore = true;//是否自动加载更多
-    private HeaderAndFooterAdapter mHeaderAndFooterAdapter;
+    private CommonRecyclerViewAdapter mCommonRecyclerViewAdapter;
     private int mLastVisiblePosition = 0;
 
     public CommonRecyclerView(Context context) {
@@ -53,9 +53,9 @@ public class CommonRecyclerView extends RecyclerView {
                     View childView = findChildViewUnder(e.getX(), e.getY());
                     if(childView != null) {
                         int position = getChildLayoutPosition(childView);
-                        if(!(mHeaderAndFooterAdapter.isHeaderViewPosition(position) ||
-                            mHeaderAndFooterAdapter.isFooterViewPosition(position))) {
-                            int headerViewCount = mHeaderAndFooterAdapter.getHeaderViewCount();
+                        if(!(mCommonRecyclerViewAdapter.isHeaderViewPosition(position) ||
+                            mCommonRecyclerViewAdapter.isFooterViewPosition(position))) {
+                            int headerViewCount = mCommonRecyclerViewAdapter.getHeaderViewCount();
                             mItemLongClickListener.onItemLongClick(position - headerViewCount, childView);
                         }
                     }
@@ -69,9 +69,9 @@ public class CommonRecyclerView extends RecyclerView {
                     View childView = findChildViewUnder(e.getX(),e.getY());
                     if(childView != null){
                         int position = getChildLayoutPosition(childView);
-                        if(!(mHeaderAndFooterAdapter.isHeaderViewPosition(position) ||
-                                mHeaderAndFooterAdapter.isFooterViewPosition(position))) {
-                            int headerViewCount = mHeaderAndFooterAdapter.getHeaderViewCount();
+                        if(!(mCommonRecyclerViewAdapter.isHeaderViewPosition(position) ||
+                                mCommonRecyclerViewAdapter.isFooterViewPosition(position))) {
+                            int headerViewCount = mCommonRecyclerViewAdapter.getHeaderViewCount();
                             mOnItemClickListener.onItemClick(position - headerViewCount, childView);
                         }
                         return true;
@@ -176,10 +176,10 @@ public class CommonRecyclerView extends RecyclerView {
         this.mOnScrollListener = listener;
     }
 
-    public void setAdapter(HeaderAndFooterAdapter adapter) {
+    public void setAdapter(CommonRecyclerViewAdapter adapter) {
 
         super.setAdapter(adapter);
-        mHeaderAndFooterAdapter = adapter;
+        mCommonRecyclerViewAdapter = adapter;
     }
 
     /**

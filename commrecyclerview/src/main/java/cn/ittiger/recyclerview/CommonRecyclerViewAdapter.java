@@ -1,6 +1,7 @@
 package cn.ittiger.recyclerview;
 
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.SparseArray;
@@ -10,10 +11,7 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author laohu
- */
-public abstract class HeaderAndFooterAdapter<T> extends RecyclerView.Adapter<ViewHolder> {
+public abstract class CommonRecyclerViewAdapter<T> extends RecyclerView.Adapter<CommonViewHolder> {
 
     private static final int TYPE_HEADER = 100000;
     private static final int TYPE_FOOTER = 200000;
@@ -24,34 +22,36 @@ public abstract class HeaderAndFooterAdapter<T> extends RecyclerView.Adapter<Vie
 
     private boolean mIsHeaderViewEnable = false;
     private boolean mIsFooterViewEnable = false;
+    private int mColumnNums = 1;//列表的列数
+    private boolean mIsLinearLayoutHorizontal = false;//是否为水平列表
 
-    public HeaderAndFooterAdapter(List<T> list) {
+    public CommonRecyclerViewAdapter(List<T> list) {
 
         mList = list;
     }
 
     @Override
-    public final ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public final CommonViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
         if(isHeaderViewEnable() && mHeaderViews.get(viewType) != null) {
-            return new ViewHolder(mHeaderViews.get(viewType));
+            return new CommonViewHolder(mHeaderViews.get(viewType));
         } else if(isFooterViewEnable() && mFooterViews.get(viewType) != null) {
-            return new ViewHolder(mFooterViews.get(viewType));
+            return new CommonViewHolder(mFooterViews.get(viewType));
         }
         return onCreateItemViewHolder(parent, viewType);
     }
 
-    public abstract ViewHolder onCreateItemViewHolder(ViewGroup parent, int viewType);
+    public abstract CommonViewHolder onCreateItemViewHolder(ViewGroup parent, int viewType);
 
-    public abstract void onBindItemViewHolder(ViewHolder holder, int position, T item);
+    public abstract void onBindItemViewHolder(CommonViewHolder holder, int position, T item);
 
     @Override
-    public final void onBindViewHolder(ViewHolder holder, int position) {
+    public final void onBindViewHolder(CommonViewHolder holder, int position) {
 
         if(isFooterView(position) || isHeaderView(position)) {
             return;
         }
-        T item = getItem(position - getHeaderViewCount());
+        T item = getItem(position);
         onBindItemViewHolder(holder, position, item);
     }
 
@@ -88,6 +88,11 @@ public abstract class HeaderAndFooterAdapter<T> extends RecyclerView.Adapter<Vie
         return mList == null ? 0 : mList.size();
     }
 
+    public List<T> getData() {
+
+        return mList;
+    }
+
     /**
      * 获取position位置的数据
      *
@@ -96,6 +101,7 @@ public abstract class HeaderAndFooterAdapter<T> extends RecyclerView.Adapter<Vie
      */
     public T getItem(int position) {
 
+        position = position - getHeaderViewCount();
         return mList == null ? null : mList.get(position);
     }
 
@@ -109,6 +115,7 @@ public abstract class HeaderAndFooterAdapter<T> extends RecyclerView.Adapter<Vie
             mList.addAll(list);
         }
         notifyItemRangeInserted(positionStart, list.size());
+        updateColumnNums();
     }
 
     public void add(T item) {
@@ -118,7 +125,8 @@ public abstract class HeaderAndFooterAdapter<T> extends RecyclerView.Adapter<Vie
         }
         int size = getItemDataCount();
         mList.add(item);
-        notifyItemInserted(size);
+        notifyDataSetChanged();
+        updateColumnNums();
     }
 
     public void add(T item, int position) {
@@ -128,6 +136,21 @@ public abstract class HeaderAndFooterAdapter<T> extends RecyclerView.Adapter<Vie
         }
         mList.add(position, item);
         notifyItemInserted(position);
+        updateColumnNums();
+    }
+
+    public void update(T item) {
+
+        if(mList == null) {
+            mList = new ArrayList<>();
+        }
+        int idx = mList.indexOf(item);
+        if (idx < 0) {
+            add(item);
+        } else {
+            mList.set(idx, item);
+            notifyItemChanged(idx);
+        }
     }
 
     public void update(T item , int position) {
@@ -143,6 +166,7 @@ public abstract class HeaderAndFooterAdapter<T> extends RecyclerView.Adapter<Vie
 
         mList = list;
         notifyDataSetChanged();
+        updateColumnNums();
     }
 
     /**
@@ -284,6 +308,7 @@ public abstract class HeaderAndFooterAdapter<T> extends RecyclerView.Adapter<Vie
         }
         mHeaderViews.put(TYPE_HEADER + getHeaderViewCount(), headerView);
         notifyItemInserted(getHeaderViewCount() - 1);
+        updateColumnNums();
     }
 
     /**
@@ -298,6 +323,7 @@ public abstract class HeaderAndFooterAdapter<T> extends RecyclerView.Adapter<Vie
         }
         mFooterViews.put(TYPE_FOOTER + getFooterViewCount(), footerView);
         notifyItemInserted(getHeaderViewCount() + getItemDataCount() + getFooterViewCount() - 1);
+        updateColumnNums();
     }
 
     @Override
@@ -306,18 +332,28 @@ public abstract class HeaderAndFooterAdapter<T> extends RecyclerView.Adapter<Vie
         super.onAttachedToRecyclerView(recyclerView);
         final RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
         if(layoutManager instanceof GridLayoutManager) {
+            mColumnNums = ((GridLayoutManager) layoutManager).getSpanCount();
             ((GridLayoutManager) layoutManager).setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
                 @Override
                 public int getSpanSize(int position) {
 
-                    return getNewSpanSize(((GridLayoutManager) layoutManager).getSpanCount(), position);
+                    return getNewSpanSize(mColumnNums, position);
                 }
             });
+        } else if(layoutManager instanceof StaggeredGridLayoutManager) {
+            mColumnNums = ((StaggeredGridLayoutManager)layoutManager).getSpanCount();
+        } else {
+            if(((LinearLayoutManager)layoutManager).getOrientation() == LinearLayoutManager.VERTICAL) {
+                mColumnNums = 1;
+            } else {
+                mColumnNums = getItemCount();
+                mIsLinearLayoutHorizontal = true;
+            }
         }
     }
 
     @Override
-    public void onViewAttachedToWindow(ViewHolder holder) {
+    public void onViewAttachedToWindow(CommonViewHolder holder) {
 
         super.onViewAttachedToWindow(holder);
         int position = holder.getLayoutPosition();
@@ -336,7 +372,36 @@ public abstract class HeaderAndFooterAdapter<T> extends RecyclerView.Adapter<Vie
             return spanCount;
         }
 
+        return getGridLayoutSpanSize(spanCount, position);
+    }
+
+    /**
+     * RecyclerView作为GridView使用时，如果某项数据需要满屏展示，则需要重写此方法进行实现
+     * 实现时只需要在相应position时返回参数spanCount值即可
+     *
+     * @param spanCount
+     * @param position
+     * @return
+     */
+    public int getGridLayoutSpanSize(int spanCount, int position) {
+
         return 1;
+    }
+
+    private void updateColumnNums() {
+
+        if(mIsLinearLayoutHorizontal) {
+            mColumnNums = getItemCount();
+        }
+    }
+
+    /**
+     * 获取当前的列数
+     * @return
+     */
+    public int getColumnNums() {
+
+        return mColumnNums;
     }
 }
 
