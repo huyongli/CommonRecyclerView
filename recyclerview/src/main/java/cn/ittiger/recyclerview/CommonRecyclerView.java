@@ -183,6 +183,17 @@ public class CommonRecyclerView extends RecyclerView {
     }
 
     /**
+     * 集成其他三方RecyclerView的相关库，如：recyclerview-animators时，
+     * 所设置的Adapter不是CommonRecyclerViewAdapter类型时，可以调用此方法重新设置CommonRecyclerViewAdapter
+     *
+     * @param adapter
+     */
+    public void setCommonRecyclerViewAdapter(CommonRecyclerViewAdapter adapter) {
+
+        mCommonRecyclerViewAdapter = adapter;
+    }
+
+    /**
      * 设置Item单击监听
      *
      * @param itemClickListener
