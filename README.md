@@ -3,7 +3,7 @@
 # Gradle
 `compile 'cn.ittiger:recyclerview:1.1'`
 
-# 封装了RecyclerView为RecyclerView增加了如下3个常用功能：
+# 封装了RecyclerView为RecyclerView增加了如下4个常用功能：
 
 ## 1.设置RecyclerView中每项的点击事件
 mRecyclerView.setOnItemClickListener(new CommonRecyclerView.OnItemClickListener());
@@ -15,6 +15,9 @@ mRecyclerView.setOnItemLongClickListener(new CommonRecyclerView.OnItemLongClickL
 mRecyclerView.setOnLoadMoreListener(new CommonRecyclerView.LoadMoreListener());
 如果不想开启滑动到底部自动加载更多这个功能，则可以不设置加载更多监听，
 也可以通过mRecyclerView.setEnableAutoLoadMore(false)关闭此功能
+
+## 4.与ListView一样支持设置EmptyView
+mRecyclerView.setEmptyView(View view);
 
 # 封装RecyclerView.Adapter使其更通用
 

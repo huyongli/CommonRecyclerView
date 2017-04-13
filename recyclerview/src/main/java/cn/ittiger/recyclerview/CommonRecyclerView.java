@@ -178,8 +178,16 @@ public class CommonRecyclerView extends RecyclerView {
 
     public void setAdapter(CommonRecyclerViewAdapter adapter) {
 
+        final Adapter oldAdapter = getAdapter();
+        if (oldAdapter != null) {
+            oldAdapter.unregisterAdapterDataObserver(mDataObserver);
+        }
         super.setAdapter(adapter);
         mCommonRecyclerViewAdapter = adapter;
+        if (adapter != null) {
+            adapter.registerAdapterDataObserver(mDataObserver);
+        }
+        checkIfEmpty();
     }
 
     /**
@@ -248,5 +256,47 @@ public class CommonRecyclerView extends RecyclerView {
          * UI线程
          */
         void onLoadMore();
+    }
+
+    private View emptyView;
+
+    final private AdapterDataObserver mDataObserver = new AdapterDataObserver() {
+        @Override
+        public void onChanged() {
+
+            checkIfEmpty();
+        }
+
+        @Override
+        public void onItemRangeInserted(int positionStart, int itemCount) {
+
+            checkIfEmpty();
+        }
+
+        @Override
+        public void onItemRangeRemoved(int positionStart, int itemCount) {
+
+            checkIfEmpty();
+        }
+    };
+
+    private void checkIfEmpty() {
+
+        if (emptyView != null && getAdapter() != null) {
+            final boolean emptyViewVisible =
+                    getAdapter().getItemCount() == 0;
+            emptyView.setVisibility(emptyViewVisible ? VISIBLE : GONE);
+            setVisibility(emptyViewVisible ? GONE : VISIBLE);
+        }
+    }
+
+    /**
+     * 实现与ListView中相同的效果，设置EmptyView
+     * @param emptyView
+     */
+    public void setEmptyView(View emptyView) {
+
+        this.emptyView = emptyView;
+        checkIfEmpty();
     }
 }
