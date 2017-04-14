@@ -68,6 +68,10 @@ public class CommonRecyclerView extends RecyclerView {
                 if(mOnItemClickListener != null) {
                     View childView = findChildViewUnder(e.getX(),e.getY());
                     if(childView != null){
+                        boolean handled = childView.dispatchTouchEvent(e);
+                        if(handled) {
+                            return true;
+                        }
                         int position = getChildLayoutPosition(childView);
                         if(!(mCommonRecyclerViewAdapter.isHeaderViewPosition(position) ||
                                 mCommonRecyclerViewAdapter.isFooterViewPosition(position))) {
