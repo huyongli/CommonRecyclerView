@@ -7,7 +7,10 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -21,7 +24,8 @@ import java.util.List;
  */
 public class RecyclerViewActivity extends AppCompatActivity implements
         CommonRecyclerView.OnItemLongClickListener,
-        CommonRecyclerView.LoadMoreListener, CommonRecyclerView.OnItemClickListener {
+        CommonRecyclerView.LoadMoreListener, 
+        CommonRecyclerView.OnItemClickListener {
 
     protected CommonRecyclerView mRecyclerView;
     protected StringListAdapter mAdapter;
@@ -42,6 +46,7 @@ public class RecyclerViewActivity extends AppCompatActivity implements
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(5));
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
         mRecyclerView.setOnItemClickListener(this);
+        mRecyclerView.addOnItemTouchListener(mOnItemTouchListener);
 
         mAdapter = new StringListAdapter(this, getData());
         mRecyclerView.setAdapter(mAdapter);
@@ -150,4 +155,41 @@ public class RecyclerViewActivity extends AppCompatActivity implements
             }
         }.start();
     }
+
+    private RecyclerView.SimpleOnItemTouchListener mOnItemTouchListener =
+            new RecyclerView.SimpleOnItemTouchListener() {
+
+                @Override
+                public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+
+                    View childView = mRecyclerView.findChildViewUnder(e.getX(), e.getY());
+                    if(childView == null) {
+                        return;
+                    }
+                    switch (e.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            Log.d("MusicListItem", "ACTION_DOWN");
+                            childView.setBackgroundResource(android.R.color.holo_red_dark);
+                            break;
+                        case MotionEvent.ACTION_CANCEL:
+                            Log.d("MusicListItem", "ACTION_CANCEL");
+                            childView.setBackgroundResource(android.R.color.holo_green_dark);
+                            break;
+                        case MotionEvent.ACTION_MOVE:
+                            Log.d("MusicListItem", "ACTION_MOVE");
+                            childView.setBackgroundResource(android.R.color.holo_green_dark);
+                            break;
+                        case MotionEvent.ACTION_OUTSIDE:
+                            Log.d("MusicListItem", "ACTION_OUTSIDE");
+                            childView.setBackgroundResource(android.R.color.holo_green_dark);
+                            break;
+                        case MotionEvent.ACTION_UP:
+                            childView.setBackgroundResource(android.R.color.holo_green_dark);
+                            Log.d("MusicListItem", "ACTION_UP");
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            };
 }

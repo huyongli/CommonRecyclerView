@@ -10,6 +10,8 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.ArrayList;
+
 /**
  * 通用RecyclerView，支持添加ItemClick和ItemLongClick事件，同时支持自动加载更多
  * Created by laohu on 16-7-21.
@@ -24,6 +26,8 @@ public class CommonRecyclerView extends RecyclerView {
     private boolean mIsAutoLoadMore = true;//是否自动加载更多
     private CommonRecyclerViewAdapter mCommonRecyclerViewAdapter;
     private int mLastVisiblePosition = 0;
+    private final ArrayList<OnItemTouchListener> mOnItemTouchListeners =
+            new ArrayList<>();
 
     public CommonRecyclerView(Context context) {
 
@@ -83,9 +87,17 @@ public class CommonRecyclerView extends RecyclerView {
                 }
                 return super.onSingleTapUp(e);
             }
-        });
 
-        addOnItemTouchListener(new SimpleOnItemTouchListener() {
+        }) {
+            @Override
+            public boolean onTouchEvent(MotionEvent ev) {
+
+                dispatchItemTouchEvent(ev);
+                return super.onTouchEvent(ev);
+            }
+        };
+
+        super.addOnItemTouchListener(new SimpleOnItemTouchListener() {
             @Override
             public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
 
@@ -124,6 +136,20 @@ public class CommonRecyclerView extends RecyclerView {
                 }
             }
         });
+    }
+
+    @Override
+    public void addOnItemTouchListener(OnItemTouchListener listener) {
+
+        super.addOnItemTouchListener(listener);
+        mOnItemTouchListeners.add(listener);
+    }
+
+    private void dispatchItemTouchEvent(MotionEvent event) {
+
+        for(OnItemTouchListener listener : mOnItemTouchListeners) {
+            listener.onTouchEvent(this, event);
+        }
     }
 
     /**
