@@ -1,7 +1,6 @@
 package cn.ittiger;
 
 import cn.ittiger.recyclerview.CommonRecyclerViewAdapter;
-import cn.ittiger.recyclerview.CommonViewHolder;
 import cn.ittiger.recyclerview.demo.R;
 
 import android.content.Context;
@@ -33,13 +32,13 @@ public class StringListAdapter extends CommonRecyclerViewAdapter<String> {
     }
 
     @Override
-    public void onBindItemViewHolder(CommonViewHolder holder, int position, String item) {
+    public void onBindItemViewHolder(CommonRecyclerViewAdapter.CommonViewHolder holder, int position, String item) {
 
         ItemViewHolder viewHolder = (ItemViewHolder) holder;
         viewHolder.mTextView.setText(item);
     }
 
-    public class ItemViewHolder extends CommonViewHolder {
+    public class ItemViewHolder extends CommonRecyclerViewAdapter.CommonViewHolder {
 
         public TextView mTextView;
 

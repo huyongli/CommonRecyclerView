@@ -6,11 +6,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
-
-import java.util.ArrayList;
 
 /**
  * 通用RecyclerView，支持添加ItemClick和ItemLongClick事件，同时支持自动加载更多
@@ -18,16 +14,10 @@ import java.util.ArrayList;
  */
 public class CommonRecyclerView extends RecyclerView {
 
-    private GestureDetector mGestureDetector;
-    private OnItemClickListener mOnItemClickListener;
-    private OnItemLongClickListener mItemLongClickListener;
     private OnScrollListener mOnScrollListener;
     private LoadMoreListener mLoadMoreListener;
     private boolean mIsAutoLoadMore = true;//是否自动加载更多
-    private CommonRecyclerViewAdapter mCommonRecyclerViewAdapter;
     private int mLastVisiblePosition = 0;
-    private final ArrayList<OnItemTouchListener> mOnItemTouchListeners =
-            new ArrayList<>();
 
     public CommonRecyclerView(Context context) {
 
@@ -47,67 +37,6 @@ public class CommonRecyclerView extends RecyclerView {
 
     private void init(Context context) {
 
-        mGestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
-
-            @Override
-            public void onLongPress(MotionEvent e) {
-
-                super.onLongPress(e);
-                if(mItemLongClickListener != null) {
-                    View childView = findChildViewUnder(e.getX(), e.getY());
-                    if(childView != null) {
-                        int position = getChildLayoutPosition(childView);
-                        if(!(mCommonRecyclerViewAdapter.isHeaderViewPosition(position) ||
-                            mCommonRecyclerViewAdapter.isFooterViewPosition(position))) {
-                            int headerViewCount = mCommonRecyclerViewAdapter.getHeaderViewCount();
-                            mItemLongClickListener.onItemLongClick(position - headerViewCount, childView);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public boolean onSingleTapUp(MotionEvent e) {
-
-                if(mOnItemClickListener != null) {
-                    View childView = findChildViewUnder(e.getX(),e.getY());
-                    if(childView != null){
-                        boolean handled = childView.dispatchTouchEvent(e);
-                        if(handled) {
-                            return true;
-                        }
-                        int position = getChildLayoutPosition(childView);
-                        if(!(mCommonRecyclerViewAdapter.isHeaderViewPosition(position) ||
-                                mCommonRecyclerViewAdapter.isFooterViewPosition(position))) {
-                            int headerViewCount = mCommonRecyclerViewAdapter.getHeaderViewCount();
-                            mOnItemClickListener.onItemClick(position - headerViewCount, childView);
-                        }
-                        return true;
-                    }
-                }
-                return super.onSingleTapUp(e);
-            }
-
-        }) {
-            @Override
-            public boolean onTouchEvent(MotionEvent ev) {
-
-                dispatchItemTouchEvent(ev);
-                return super.onTouchEvent(ev);
-            }
-        };
-
-        super.addOnItemTouchListener(new SimpleOnItemTouchListener() {
-            @Override
-            public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
-
-                if (mGestureDetector.onTouchEvent(e)) {//交由手势处理
-                    return true;
-                }
-                return false;
-            }
-        });
-
         //设置加载更多处理
         super.setOnScrollListener(new OnScrollListener() {
             @Override
@@ -115,7 +44,8 @@ public class CommonRecyclerView extends RecyclerView {
 
                 super.onScrollStateChanged(recyclerView, newState);
                 if(newState == SCROLL_STATE_IDLE && mIsAutoLoadMore && mLoadMoreListener != null) {
-                    if(mLastVisiblePosition + 1 == getAdapter().getItemCount()) {
+                    int firstPosition = getFirstVisiblePosition();
+                    if(mLastVisiblePosition + 1 == getAdapter().getItemCount() && firstPosition != 0) {
                         mLoadMoreListener.onLoadMore();
                     }
                 }
@@ -136,20 +66,6 @@ public class CommonRecyclerView extends RecyclerView {
                 }
             }
         });
-    }
-
-    @Override
-    public void addOnItemTouchListener(OnItemTouchListener listener) {
-
-        super.addOnItemTouchListener(listener);
-        mOnItemTouchListeners.add(listener);
-    }
-
-    private void dispatchItemTouchEvent(MotionEvent event) {
-
-        for(OnItemTouchListener listener : mOnItemTouchListeners) {
-            listener.onTouchEvent(this, event);
-        }
     }
 
     /**
@@ -175,6 +91,28 @@ public class CommonRecyclerView extends RecyclerView {
     }
 
     /**
+     * 获取第一条展示的位置
+     *
+     * @return
+     */
+    public int getFirstVisiblePosition() {
+
+        int position;
+        if (getLayoutManager() instanceof LinearLayoutManager) {
+            position = ((LinearLayoutManager) getLayoutManager()).findFirstVisibleItemPosition();
+        } else if (getLayoutManager() instanceof GridLayoutManager) {
+            position = ((GridLayoutManager) getLayoutManager()).findFirstVisibleItemPosition();
+        } else if (getLayoutManager() instanceof StaggeredGridLayoutManager) {
+            StaggeredGridLayoutManager layoutManager = (StaggeredGridLayoutManager) getLayoutManager();
+            int[] firstPositions = layoutManager.findFirstVisibleItemPositions(new int[layoutManager.getSpanCount()]);
+            position = getMinPosition(firstPositions);
+        } else {
+            position = 0;
+        }
+        return position;
+    }
+
+    /**
      * 获得最大的位置
      *
      * @param positions
@@ -187,6 +125,21 @@ public class CommonRecyclerView extends RecyclerView {
             maxPosition = Math.max(maxPosition, positions[i]);
         }
         return maxPosition;
+    }
+
+    /**
+     * 获得最大的位置
+     *
+     * @param positions
+     * @return
+     */
+    private int getMinPosition(int[] positions) {
+
+        int minPosition = Integer.MAX_VALUE;
+        for (int i = 0; i < positions.length; i++) {
+            minPosition = Math.min(minPosition, positions[i]);
+        }
+        return minPosition;
     }
 
     /**
@@ -213,42 +166,10 @@ public class CommonRecyclerView extends RecyclerView {
             oldAdapter.unregisterAdapterDataObserver(mDataObserver);
         }
         super.setAdapter(adapter);
-        mCommonRecyclerViewAdapter = adapter;
         if (adapter != null) {
             adapter.registerAdapterDataObserver(mDataObserver);
         }
         checkIfEmpty();
-    }
-
-    /**
-     * 集成其他三方RecyclerView的相关库，如：recyclerview-animators时，
-     * 所设置的Adapter不是CommonRecyclerViewAdapter类型时，可以调用此方法重新设置CommonRecyclerViewAdapter
-     *
-     * @param adapter
-     */
-    public void setCommonRecyclerViewAdapter(CommonRecyclerViewAdapter adapter) {
-
-        mCommonRecyclerViewAdapter = adapter;
-    }
-
-    /**
-     * 设置Item单击监听
-     *
-     * @param itemClickListener
-     */
-    public void setOnItemClickListener(OnItemClickListener itemClickListener) {
-
-        this.mOnItemClickListener = itemClickListener;
-    }
-
-    /**
-     * 设置Item长按监听
-     *
-     * @param itemLongClickListener
-     */
-    public void setOnItemLongClickListener(OnItemLongClickListener itemLongClickListener) {
-
-        this.mItemLongClickListener = itemLongClickListener;
     }
 
     /**
@@ -259,22 +180,6 @@ public class CommonRecyclerView extends RecyclerView {
     public void setOnLoadMoreListener(LoadMoreListener loadMoreListener) {
 
         mLoadMoreListener = loadMoreListener;
-    }
-
-    /**
-     * Item项点击事件
-     */
-    public interface OnItemClickListener {
-
-        void onItemClick(int position, View itemView);
-    }
-
-    /**
-     * Item项长按点击事件
-     */
-    public interface OnItemLongClickListener {
-
-        void onItemLongClick(int position, View itemView);
     }
 
     /**

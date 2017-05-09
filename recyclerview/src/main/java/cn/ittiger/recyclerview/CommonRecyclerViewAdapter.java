@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class CommonRecyclerViewAdapter<T> extends RecyclerView.Adapter<CommonViewHolder> {
+public abstract class CommonRecyclerViewAdapter<T> extends RecyclerView.Adapter<CommonRecyclerViewAdapter.CommonViewHolder> {
 
     private static final int TYPE_HEADER = 100000;
     private static final int TYPE_FOOTER = 200000;
@@ -20,10 +20,12 @@ public abstract class CommonRecyclerViewAdapter<T> extends RecyclerView.Adapter<
     private SparseArray<View> mHeaderViews = new SparseArray<>(0);
     private SparseArray<View> mFooterViews = new SparseArray<>(0);
 
-    private boolean mIsHeaderViewEnable = false;
-    private boolean mIsFooterViewEnable = false;
+    private boolean mIsHeaderViewEnable = true;
+    private boolean mIsFooterViewEnable = true;
     private int mColumnNums = 1;//列表的列数
     private boolean mIsLinearLayoutHorizontal = false;//是否为水平列表
+    private OnItemClickListener mOnItemClickListener;
+    private OnItemLongClickListener mItemLongClickListener;
 
     public CommonRecyclerViewAdapter(List<T> list) {
 
@@ -46,7 +48,7 @@ public abstract class CommonRecyclerViewAdapter<T> extends RecyclerView.Adapter<
     public abstract void onBindItemViewHolder(CommonViewHolder holder, int position, T item);
 
     @Override
-    public final void onBindViewHolder(CommonViewHolder holder, int position) {
+    public void onBindViewHolder(CommonRecyclerViewAdapter.CommonViewHolder holder, int position) {
 
         if(isFooterView(position) || isHeaderView(position)) {
             return;
@@ -55,7 +57,6 @@ public abstract class CommonRecyclerViewAdapter<T> extends RecyclerView.Adapter<
         onBindItemViewHolder(holder, position, item);
     }
 
-    @Override
     public final int getItemViewType(int position) {
 
         if(isHeaderView(position)) {//FooterView
@@ -167,6 +168,14 @@ public abstract class CommonRecyclerViewAdapter<T> extends RecyclerView.Adapter<
         mList = list;
         notifyDataSetChanged();
         updateColumnNums();
+    }
+
+    public void removeAll() {
+
+        if(mList != null) {
+            mList.clear();
+            notifyDataSetChanged();
+        }
     }
 
     /**
@@ -353,7 +362,7 @@ public abstract class CommonRecyclerViewAdapter<T> extends RecyclerView.Adapter<
     }
 
     @Override
-    public void onViewAttachedToWindow(CommonViewHolder holder) {
+    public void onViewAttachedToWindow(CommonRecyclerViewAdapter.CommonViewHolder holder) {
 
         super.onViewAttachedToWindow(holder);
         int position = holder.getLayoutPosition();
@@ -402,6 +411,60 @@ public abstract class CommonRecyclerViewAdapter<T> extends RecyclerView.Adapter<
     public int getColumnNums() {
 
         return mColumnNums;
+    }
+
+    public class CommonViewHolder extends RecyclerView.ViewHolder implements
+            View.OnClickListener, View.OnLongClickListener {
+
+        public CommonViewHolder(View itemView) {
+
+            super(itemView);
+            itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+
+            if(mOnItemClickListener != null) {
+                mOnItemClickListener.onItemClick(getLayoutPosition(), v);
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+
+            if(mItemLongClickListener != null) {
+                mItemLongClickListener.onItemLongClick(getLayoutPosition(), v);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Item项点击事件
+     */
+    public interface OnItemClickListener {
+
+        void onItemClick(int position, View itemView);
+    }
+
+    /**
+     * Item项长按点击事件
+     */
+    public interface OnItemLongClickListener {
+
+        void onItemLongClick(int position, View itemView);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener onItemClickListener) {
+
+        mOnItemClickListener = onItemClickListener;
+    }
+
+    public void setOnItemLongClickListener(OnItemLongClickListener itemLongClickListener) {
+
+        mItemLongClickListener = itemLongClickListener;
     }
 }
 

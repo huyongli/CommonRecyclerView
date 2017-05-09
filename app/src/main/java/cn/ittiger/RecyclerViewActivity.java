@@ -1,6 +1,7 @@
 package cn.ittiger;
 
 import cn.ittiger.recyclerview.CommonRecyclerView;
+import cn.ittiger.recyclerview.CommonRecyclerViewAdapter;
 import cn.ittiger.recyclerview.demo.R;
 
 import android.os.Bundle;
@@ -23,9 +24,9 @@ import java.util.List;
  * @site: http://ittiger.cn
  */
 public class RecyclerViewActivity extends AppCompatActivity implements
-        CommonRecyclerView.OnItemLongClickListener,
-        CommonRecyclerView.LoadMoreListener, 
-        CommonRecyclerView.OnItemClickListener {
+        CommonRecyclerViewAdapter.OnItemLongClickListener,
+        CommonRecyclerView.LoadMoreListener,
+        CommonRecyclerViewAdapter.OnItemClickListener {
 
     protected CommonRecyclerView mRecyclerView;
     protected StringListAdapter mAdapter;
@@ -45,12 +46,12 @@ public class RecyclerViewActivity extends AppCompatActivity implements
         mRecyclerView.setLayoutManager(mLayoutManager);
         mRecyclerView.addItemDecoration(new SpacesItemDecoration(5));
         mRecyclerView.setItemAnimator(new DefaultItemAnimator());
-        mRecyclerView.setOnItemClickListener(this);
-        mRecyclerView.addOnItemTouchListener(mOnItemTouchListener);
+//        mRecyclerView.addOnItemTouchListener(mOnItemTouchListener);
 
         mAdapter = new StringListAdapter(this, getData());
         mRecyclerView.setAdapter(mAdapter);
-        mRecyclerView.setOnItemLongClickListener(this);
+        mAdapter.setOnItemClickListener(this);
+        mAdapter.setOnItemLongClickListener(this);
         mRecyclerView.setOnLoadMoreListener(this);
         mLoadMoreView = getLoadMoreView();
     }
@@ -108,6 +109,9 @@ public class RecyclerViewActivity extends AppCompatActivity implements
                     mLoadMoreView.setVisibility(View.GONE);
                 }
                 UIUtil.showToast(this, "上拉加载更多");
+                break;
+            default:
+                UIUtil.showToast(this, "Item" + position);
                 break;
         }
     }

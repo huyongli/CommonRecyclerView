@@ -1,15 +1,15 @@
 # CommonRecyclerView
 
 # Gradle
-`compile 'cn.ittiger:recyclerview:1.1'`
+`compile 'cn.ittiger:recyclerview:1.5'`
 
 # 封装了RecyclerView为RecyclerView增加了如下4个常用功能：
 
 ## 1.设置RecyclerView中每项的点击事件
-mRecyclerView.setOnItemClickListener(new CommonRecyclerView.OnItemClickListener());
+mAdapter.setOnItemClickListener(new CommonRecyclerViewAdapter.OnItemClickListener());
 
 ## 2.设置RecyclerView中每项的长按点击事件
-mRecyclerView.setOnItemLongClickListener(new CommonRecyclerView.OnItemLongClickListener());
+mAdapter.setOnItemLongClickListener(new CommonRecyclerViewAdapter.OnItemLongClickListener());
 
 ## 3.列表滑动到底部自动加载更多
 mRecyclerView.setOnLoadMoreListener(new CommonRecyclerView.LoadMoreListener());
