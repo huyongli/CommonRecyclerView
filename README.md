@@ -1,7 +1,7 @@
 # CommonRecyclerView
 
 # Gradle
-`compile 'cn.ittiger:recyclerview:1.5'`
+`compile 'cn.ittiger:recyclerview:1.6'`
 
 # 封装了RecyclerView为RecyclerView增加了如下4个常用功能：
 
